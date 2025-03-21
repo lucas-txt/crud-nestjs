@@ -7,12 +7,9 @@ import {
   Param,
   Delete,
   Query,
-  UseGuards,
 } from '@nestjs/common';
 import { EmployeesService } from './employees.service';
-import { Prisma, Role } from '@prisma/client';
-import { Roles } from 'src/roles/roles.decorator';
-import { AuthGuard } from 'src/auth/auth.guard';
+import { Prisma } from '@prisma/client';
 
 @Controller('employees')
 export class EmployeesController {
@@ -29,8 +26,6 @@ export class EmployeesController {
   }
 
   @Get(':id')
-  @UseGuards(AuthGuard)
-  @Roles(Role.ADMIN)
   findOne(@Param('id') id: string) {
     return this.employeesService.findOne(id);
   }

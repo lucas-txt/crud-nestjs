@@ -1,7 +1,7 @@
 import { Request } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
-import { jwtConstants } from './auth.constants';
+import { jwtConstants } from '../auth.constants';
 @Injectable()
 export class AuthGuard implements CanActivate {
     constructor(private jwtService: JwtService) {}
@@ -10,6 +10,7 @@ export class AuthGuard implements CanActivate {
         const request = context.switchToHttp().getRequest()
         const token = this.extractTokenFromHeader(request)
         if (!token) {
+            console.log("invalid token trying")
             throw new UnauthorizedException("invalid token")
         }
         try {
@@ -19,6 +20,7 @@ export class AuthGuard implements CanActivate {
 
             request['user'] = payload  
         } catch {
+            console.log("invalid token trying")
             throw new UnauthorizedException("Invalid token")
         }
         return true

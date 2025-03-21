@@ -3,8 +3,8 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { DatabaseModule } from 'src/database/database.module';
 import { JwtModule } from '@nestjs/jwt';
-import { jwtConstants } from './auth.constants';
-import { DatabaseService } from 'src/database/database.service';
+import { jwtConstants } from '../auth.constants';
+import { RolesGuard } from 'src/roles/roles.guard';
 
 
 @Module({
@@ -16,7 +16,7 @@ import { DatabaseService } from 'src/database/database.service';
       signOptions: { expiresIn: '60s' },
     }),
   ],
-  providers: [AuthService],
+  providers: [AuthService, RolesGuard],
   controllers: [AuthController],
 })
 export class AuthModule {}

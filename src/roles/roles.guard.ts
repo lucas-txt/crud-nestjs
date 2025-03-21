@@ -1,32 +1,36 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { Role } from '@prisma/client';
-import { ROLES_KEY } from './roles.decorator';
+import { Request } from 'express';
 import { JwtService } from '@nestjs/jwt';
-import { jwtConstants } from 'src/auth/auth.constants';
-
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
+import { jwtConstants } from '../auth.constants';
 @Injectable()
 export class RolesGuard implements CanActivate {
-    constructor(private reflector: Reflector) {} 
+    constructor(private jwtService: JwtService) {}
 
-    canActivate(context: ExecutionContext): boolean  {
-        const requiredRoles = this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [
-            context.getHandler(),
-            context.getClass()
-        ]);
-
-        if (!requiredRoles) {
-            return true;
+    async canActivate(context: ExecutionContext): Promise<boolean> {
+        const request = context.switchToHttp().getRequest()
+        const token = this.extractTokenFromHeader(request)
+        if (!token) {
+            console.log("invalid token trying")
+            throw new UnauthorizedException("invalid token")
         }
+        try {
+            const payload = await this.jwtService.verifyAsync(token, {
+                secret: jwtConstants.secret
+            })
 
-        const request = context.switchToHttp().getRequest();
-        const user = request.user;
-
-        if (!user || !Array.isArray(user.roles)) {
-            console.error("RolesGuard: User or roles not found in request");
-            return false;
+            if (payload.role == "ADMIN") {
+                return true
+            } else {
+                return false
+            }
+        } catch {
+            console.log("invalid token trying")
+            throw new UnauthorizedException("Invalid token")
         }
+    }
 
-        return requiredRoles.some((role) => user.roles.includes(role));
+    private extractTokenFromHeader(request: Request): string | undefined {
+        const [type, token] = request.headers.authorization?.split(' ') ?? []
+        return type == "Bearer" ? token : undefined
     }
 }
